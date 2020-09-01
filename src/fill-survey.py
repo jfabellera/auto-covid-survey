@@ -41,7 +41,6 @@ try:
         submit_button = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "submit-btn-saverecord")))
         submit_button.click()
     except:
-        # TODO report to user status of submission
         print(f"Submission button not found.")
         exit_code = -1
 finally:

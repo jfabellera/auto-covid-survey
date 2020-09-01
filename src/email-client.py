@@ -1,4 +1,5 @@
 import imaplib
+import smtplib
 import os
 import email
 import quopri
@@ -16,6 +17,20 @@ def get_url(payload):
     return None
 
 
+def send_email(subject, msg, recipient, user, password):
+    try:
+        server = smtplib.SMTP("smtp.gmail.com:587")
+        server.ehlo()
+        server.starttls()
+        server.login(user, password)
+        message = f"Subject: {subject}\n\n{msg}"
+        server.sendmail(user, recipient, message)
+        server.quit()
+        print("Email successfully sent.")
+    except:
+        print("Email failed to send.")
+
+
 # retrieve login credentials for emails
 yes_user = os.environ["YES_USER"]
 yes_pass = os.environ["YES_PASS"]
@@ -30,6 +45,8 @@ no_mail.login(no_user, no_pass)
 
 mailboxes = [yes_mail, no_mail]
 labels = ["YES", "NO"]
+usernames = [yes_user, no_user]
+passwords = [yes_pass, no_pass]
 read_emails_files = ["read_emails_yes.dat", "read_emails_no.dat"]
 mailbox_selector = 0
 
@@ -56,6 +73,7 @@ while True:
         raw_email = email_data[0][1].decode("utf-8")
         email_message = email.message_from_string(raw_email)
         sender = email_message["From"]
+        sender_email = sender[sender.rfind('<') + 1: sender.rfind('>')]
         survey_url = None
 
         print(f"Reading email from {sender} in {labels[mailbox_selector]} mailbox...")
@@ -73,17 +91,16 @@ while True:
             if mailbox_selector == 1:
                 command += " -n"
             script_result = os.system(command)
-        else:
-            # TODO email sender that it is not a valid email or something like that
-            pass
 
         # status stuff
+        msg = f"Survey submitted successfully with {labels[mailbox_selector]} to being on campus." \
+              f"\n\nSurvey: {survey_url}"
         if script_result < 0:
-            print("There was a problem submitting the survey.")
+            msg = f"There was a problem submitting the following survey:\n\n{survey_url}"
         elif script_result > 0:
-            print("There was no survey to submit.")
-        else:
-            print(f"Survey submitted successfully with {labels[mailbox_selector]} to being on campus.")
+            msg = "There was no survey to submit."
+        print(msg)
+        send_email("Survey Status", msg, sender_email, usernames[mailbox_selector], passwords[mailbox_selector])
 
         # update read emails
         read_emails.append(uid)
