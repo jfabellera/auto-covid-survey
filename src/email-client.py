@@ -1,7 +1,23 @@
 import imaplib
 import os
 import email
-import time
+import quopri
+import pickle
+
+
+def get_url(payload):
+    # get rid of 3D in the url which is introduced for some reason
+    payload = str(quopri.decodestring(payload))
+
+    url = payload[payload.rfind('<') + 1:payload.rfind('>')]
+    if "redcap" in url:
+        return url
+    return None
+
+
+# get uid's of already read emails
+with open("read_emails.dat", "rb") as fp:
+    read_emails = pickle.load(fp)
 
 # retrieve login credentials for emails
 yes_user = os.environ["YES_USER"]
@@ -25,4 +41,17 @@ result2, email_data = yes_mail.uid("fetch", latest, "(RFC822)")
 raw_email = email_data[0][1].decode("utf-8")
 email_message = email.message_from_string(raw_email)
 
-print(email_message["From"])
+sender = email_message["From"]
+survey_url = ""
+
+for part in email_message.walk():
+    content_type = part.get_content_type()
+    if "plain" in content_type:
+        survey_url = get_url(part.get_payload())
+
+if survey_url is not None:
+    os.system(f"python fill-survey.py -u {survey_url}")
+else:
+    # email sender that it is not a valid email
+    pass
+
