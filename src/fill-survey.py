@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import argparse
+import time
 
 
 parser = argparse.ArgumentParser()
@@ -25,16 +26,20 @@ else:
     radio_button_ids = ["label-on_campus-1", "label-q_1-0", "label-q_2-0", "label-q_3-0",
                         "label-q_4-0", "label-q_5-0", "label-healthy_cert-1"]
 
-for element_id in radio_button_ids:
-    try:
-        radio_element = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.ID, element_id)))
-        radio_element.click()
-    except:
-        print(f"Expected option not found for id: {element_id}.")
-
 try:
-    submit_button = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "submit-btn-saverecord")))
-    # submit_button.click()
-except:
-    # TODO report to user status of submission
-    print(f"Submission button not found.")
+    for element_id in radio_button_ids:
+        try:
+            radio_element = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.ID, element_id)))
+            radio_element.click()
+        except:
+            print(f"Expected option not found for id: {element_id}.")
+
+    try:
+        submit_button = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "submit-btn-saverecord")))
+        # submit_button.click()
+    except:
+        # TODO report to user status of submission
+        print(f"Submission button not found.")
+finally:
+    time.sleep(2)
+    driver.quit()
