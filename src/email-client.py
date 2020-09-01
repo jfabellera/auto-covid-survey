@@ -9,7 +9,7 @@ import time
 
 def get_url(payload):
     # get rid of 3D in the url which is introduced for some reason
-    payload = str(quopri.decodestring(payload))
+    # payload = str(quopri.decodestring(payload))
 
     url = payload[payload.rfind('<') + 1:payload.rfind('>')]
     if "redcap" in url:
@@ -70,7 +70,7 @@ while True:
     # go through the new emails
     for uid in unread_emails:
         result2, email_data = mailboxes[mailbox_selector].uid("fetch", uid, "(RFC822)")
-        raw_email = email_data[0][1].decode("utf-8")
+        raw_email = email_data[0][1].decode('utf-8')
         email_message = email.message_from_string(raw_email)
         sender = email_message["From"]
         sender_email = sender[sender.rfind('<') + 1: sender.rfind('>')]
@@ -82,7 +82,7 @@ while True:
             for part in email_message.walk():
                 content_type = part.get_content_type()
                 if "plain" in content_type:
-                    survey_url = get_url(part.get_payload())
+                    survey_url = get_url(part.get_payload(decode=True).decode('utf-8'))
 
         # fill out survey if valid
         script_result = 1
@@ -109,4 +109,4 @@ while True:
         pickle.dump(read_emails, fp)
 
     mailbox_selector = (mailbox_selector + 1) % 2
-    time.sleep(30)
+    time.sleep(1)
