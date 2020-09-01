@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import argparse
 import time
+import sys
 
 
 parser = argparse.ArgumentParser()
@@ -26,6 +27,7 @@ else:
     radio_button_ids = ["label-on_campus-1", "label-q_1-0", "label-q_2-0", "label-q_3-0",
                         "label-q_4-0", "label-q_5-0", "label-healthy_cert-1"]
 
+exit_code = 0
 try:
     for element_id in radio_button_ids:
         try:
@@ -33,13 +35,16 @@ try:
             radio_element.click()
         except:
             print(f"Expected option not found for id: {element_id}.")
+            exit_code = -1
 
     try:
         submit_button = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "submit-btn-saverecord")))
-        # submit_button.click()
+        submit_button.click()
     except:
         # TODO report to user status of submission
         print(f"Submission button not found.")
+        exit_code = -1
 finally:
     time.sleep(2)
     driver.quit()
+    sys.exit(exit_code)
