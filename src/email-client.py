@@ -38,12 +38,11 @@ no_user = os.environ["NO_USER"]
 no_pass = os.environ["NO_PASS"]
 
 # authenticate accounts
-yes_mail = imaplib.IMAP4_SSL("imap.gmail.com")
-yes_mail.login(yes_user, yes_pass)
-no_mail = imaplib.IMAP4_SSL("imap.gmail.com")
-no_mail.login(no_user, no_pass)
+# yes_mail = imaplib.IMAP4_SSL("imap.gmail.com")
+# yes_mail.login(yes_user, yes_pass)
+# no_mail = imaplib.IMAP4_SSL("imap.gmail.com")
+# no_mail.login(no_user, no_pass)
 
-mailboxes = [yes_mail, no_mail]
 labels = ["YES", "NO"]
 usernames = [yes_user, no_user]
 passwords = [yes_pass, no_pass]
@@ -51,15 +50,17 @@ read_emails_files = ["read_emails_yes.dat", "read_emails_no.dat"]
 mailbox_selector = 0
 
 while True:
+    mailbox = imaplib.IMAP4_SSL("imap.gmail.com")
+    mailbox.login(usernames[mailbox_selector], passwords[mailbox_selector])
     print(f"syncing {labels[mailbox_selector]} mailbox...")
 
-    mailboxes[mailbox_selector].select("INBOX")
+    mailbox.select("INBOX")
 
     # get uid's of already read emails
     with open(read_emails_files[mailbox_selector], "rb") as fp:
         read_emails = pickle.load(fp)
 
-    result, data = mailboxes[mailbox_selector].uid("search", None, "ALL")
+    result, data = mailbox.uid("search", None, "ALL")
     inbox_item_list = data[0].split()
 
     # determine uid's of unread emails by doing set difference
@@ -69,7 +70,7 @@ while True:
 
     # go through the new emails
     for uid in unread_emails:
-        result2, email_data = mailboxes[mailbox_selector].uid("fetch", uid, "(RFC822)")
+        result2, email_data = mailbox.uid("fetch", uid, "(RFC822)")
         raw_email = email_data[0][1].decode('utf-8')
         email_message = email.message_from_string(raw_email)
         sender = email_message["From"]
@@ -108,5 +109,6 @@ while True:
     with open(read_emails_files[mailbox_selector], "wb") as fp:
         pickle.dump(read_emails, fp)
 
+    mailbox.logout()
     mailbox_selector = (mailbox_selector + 1) % 2
-    time.sleep(1)
+    time.sleep(5)
