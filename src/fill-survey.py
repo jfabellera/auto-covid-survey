@@ -17,7 +17,12 @@ parser.add_argument("-n", "--no", action="store_true", dest="on_campus_no", defa
                     help="Indicate that you are not on campus.")
 args = vars(parser.parse_args())
 
-driver = webdriver.Chrome(args["driver_path"])
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+options.add_argument('window-size=1920x1080')
+options.add_argument("disable-gpu")
+
+driver = webdriver.Chrome(args["driver_path"], options=options)
 
 driver.get(args["url"])
 

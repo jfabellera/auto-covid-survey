@@ -2,15 +2,10 @@ import imaplib
 import smtplib
 import os
 import email
-import quopri
-import pickle
 import time
 
 
 def get_url(payload):
-    # get rid of 3D in the url which is introduced for some reason
-    # payload = str(quopri.decodestring(payload))
-
     url = payload[payload.rfind('<') + 1:payload.rfind('>')]
     if "redcap" in url:
         return url
@@ -37,34 +32,24 @@ yes_pass = os.environ["YES_PASS"]
 no_user = os.environ["NO_USER"]
 no_pass = os.environ["NO_PASS"]
 
-# authenticate accounts
-# yes_mail = imaplib.IMAP4_SSL("imap.gmail.com")
-# yes_mail.login(yes_user, yes_pass)
-# no_mail = imaplib.IMAP4_SSL("imap.gmail.com")
-# no_mail.login(no_user, no_pass)
-
 labels = ["YES", "NO"]
 usernames = [yes_user, no_user]
 passwords = [yes_pass, no_pass]
-read_emails_files = ["read_emails_yes.dat", "read_emails_no.dat"]
 mailbox_selector = 0
 
 while True:
     mailbox = imaplib.IMAP4_SSL("imap.gmail.com")
     mailbox.login(usernames[mailbox_selector], passwords[mailbox_selector])
-    print(f"syncing {labels[mailbox_selector]} mailbox...")
+    print(f"{str(time.strftime('%I:%M:%S %p'))}: syncing {labels[mailbox_selector]} mailbox...")
 
     mailbox.select("INBOX")
-
-    # get uid's of already read emails
-    with open(read_emails_files[mailbox_selector], "rb") as fp:
-        read_emails = pickle.load(fp)
 
     result, data = mailbox.uid("search", None, "ALL")
     inbox_item_list = data[0].split()
 
-    # determine uid's of unread emails by doing set difference
-    unread_emails = list(set(inbox_item_list) - set(read_emails))
+    # determine uid's of unread emails (whatever is in the inbox, read emails go to trash)
+    unread_emails = list(set(inbox_item_list))
+
     if len(unread_emails) > 0:
         print(f"{len(unread_emails)} new email(s)")
 
@@ -104,10 +89,8 @@ while True:
         send_email("Survey Status", msg, sender_email, usernames[mailbox_selector], passwords[mailbox_selector])
 
         # update read emails
-        read_emails.append(uid)
-
-    with open(read_emails_files[mailbox_selector], "wb") as fp:
-        pickle.dump(read_emails, fp)
+        print("Deleting email")
+        result = mailbox.uid('COPY', uid, '[Gmail]/Trash')
 
     mailbox.logout()
     mailbox_selector = (mailbox_selector + 1) % 2
