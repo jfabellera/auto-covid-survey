@@ -1,3 +1,4 @@
+import os
 import select
 import socket
 import threading
@@ -5,6 +6,7 @@ import time
 from queue import Queue
 import subprocess
 
+os.environ["PYTHONUNBUFFERED"] = "1"
 CLIENT_NAME = 'Auto Covid Survey Client'
 HEADER_SIZE = 10
 NUMBER_OF_THREADS = 3
