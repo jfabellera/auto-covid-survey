@@ -41,9 +41,9 @@ while True:
     try:
         mailbox = imaplib.IMAP4_SSL("imap.gmail.com")
         mailbox.login(usernames[mailbox_selector], passwords[mailbox_selector])
-        print(f"{str(time.strftime('%I:%M:%S %p'))}: syncing {labels[mailbox_selector]} mailbox...")
+        print(f"syncing {labels[mailbox_selector]} mailbox...")
     except:
-        print(f"{str(time.strftime('%I:%M:%S %p'))}: unable to sync {labels[mailbox_selector]} mailbox")
+        print(f"unable to sync {labels[mailbox_selector]} mailbox")
         break
 
     mailbox.select("INBOX")
