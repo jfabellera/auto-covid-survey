@@ -83,18 +83,22 @@ while True:
             script_result = os.system(command)
 
         # status stuff
-        msg = f"Survey submitted successfully with {labels[mailbox_selector]} to being on campus." \
-              f"\n\nSurvey: {survey_url}"
-        if script_result < 0:
+        if script_result < 0 or script_result > 0:
             msg = f"There was a problem submitting the following survey:\n\n{survey_url}"
-        elif script_result > 0:
-            msg = "There was no survey to submit."
+            if script_result > 0:
+                msg = "There was no survey to submit."
+            print("Moving email")
+            result = mailbox.uid('COPY', uid, 'Issues')
+            if result[0] == 'OK':
+                mov, data = mailbox.uid('STORE', uid, '+FLAGS', '(\Deleted)')
+                mailbox.expunge()
+        else:
+            msg = f"Survey submitted successfully with {labels[mailbox_selector]} to being on campus." \
+              f"\n\nSurvey: {survey_url}"
+            send_email("Survey Status", msg, sender_email, usernames[mailbox_selector], passwords[mailbox_selector])
+            print("Deleting email")
+            result = mailbox.uid('COPY', uid, '[Gmail]/Trash')
         print(msg)
-        send_email("Survey Status", msg, sender_email, usernames[mailbox_selector], passwords[mailbox_selector])
-
-        # update read emails
-        print("Deleting email")
-        result = mailbox.uid('COPY', uid, '[Gmail]/Trash')
 
     mailbox.logout()
     mailbox_selector = (mailbox_selector + 1) % 2
