@@ -77,7 +77,7 @@ while True:
         # fill out survey if valid
         script_result = 1
         if survey_url is not None:
-            command = f"python fill-survey.py -u {survey_url}"
+            command = f"python3 fill-survey.py -u {survey_url}"
             if mailbox_selector == 1:
                 command += " -n"
             script_result = os.system(command)

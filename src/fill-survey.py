@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 import argparse
 import time
 import sys
@@ -10,19 +11,16 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--url", action="store", dest="url", required=True, type=str,
                     help="URL of the Daily Health Check survey from UTD")
-parser.add_argument("-d", "--driver", action="store", dest="driver_path", type=str,
-                    help="Path to chrome driver version 85 if in different directory.",
-                    default="C:/Program Files (x86)/chromedriver.exe")
 parser.add_argument("-n", "--no", action="store_true", dest="on_campus_no", default=False,
                     help="Indicate that you are not on campus.")
 args = vars(parser.parse_args())
 
 options = webdriver.ChromeOptions()
-options.add_argument('headless')
-options.add_argument('window-size=1920x1080')
-options.add_argument("disable-gpu")
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
 
-driver = webdriver.Chrome(args["driver_path"], options=options)
+driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
 driver.get(args["url"])
 
